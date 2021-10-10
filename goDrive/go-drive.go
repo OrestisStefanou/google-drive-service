@@ -80,6 +80,19 @@ func saveToken(path string, token *oauth2.Token) {
 
 
 //TEST AUTHENTICATION FUNCTIONS
+// Retrieves a token from a local file.
+func GetTokenFromFile(file string) (*oauth2.Token, error) {
+        f, err := os.Open(file)
+        if err != nil {
+                return nil, err
+        }
+        defer f.Close()
+        tok := &oauth2.Token{}
+        err = json.NewDecoder(f).Decode(tok)
+        return tok, err
+}
+
+
 func Get_user_auth_url() string {
         b, err := ioutil.ReadFile("credentials.json")
         if err != nil {
@@ -132,25 +145,25 @@ func getOauth2Config() (*oauth2.Config,error) {
 }
 
 
-func CreateUserToken(authCode,tokenPath string) error {
+func CreateUserToken(authCode,tokenPath string) (string,error) {
         config,err := getOauth2Config()
         if err != nil {
-                return err
+                return "",err
         }
         //Get the token from google
         tok, err := config.Exchange(context.TODO(), authCode)
         if err != nil {
                 fmt.Println("config.Exchange failed:",err)
-                return err
+                return "",err
         }
         //Check if the token is valid
         _,err = getClientService(tok)
         if err != nil {
-                return err
+                return "",err
         }
         //Save the token 
         saveToken(tokenPath,tok)
-        return nil     
+        return tok.AccessToken,nil     
 }
 
 
@@ -224,13 +237,7 @@ func TokenIsValid(tokenPath string) (bool,error) {
 }
 
 //Function that returns a slice with pointers to drive.File 
-func GetFileList(tokenPath string) ([]*drive.File,error) {
-        //Get the user token
-        tok, err := tokenFromFile(tokenPath)
-        if err != nil {
-                fmt.Println("tokenFromFile failed:",err)
-                return nil,err
-        }
+func GetFileList(tok *oauth2.Token) ([]*drive.File,error) {
         //Get client's service
         service,err := getClientService(tok)
         if err != nil {

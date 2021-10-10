@@ -2,10 +2,13 @@ package main
 
 import (
 	"os"
+	"io"
+	"fmt"
 
 	"google-drive-service/handlers"
 	"github.com/gin-gonic/gin"
 )
+
 
 func main() {
 	//Create logging file
@@ -19,8 +22,12 @@ func main() {
 	v1 := router.Group("/v1")
 	{
 		v1.GET("/ping", func(c *gin.Context) {
+			headers := c.Request.Header 
+			fmt.Println(headers)
+			header := c.GetHeader("Cookie")
 			c.JSON(200, gin.H{
 				"message": "pong",
+				"header" : header,
 			})
 		})
 
