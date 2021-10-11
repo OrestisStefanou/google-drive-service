@@ -21,7 +21,7 @@ func GetFilesMetadata(c *gin.Context){
 		c.JSON(http.StatusBadRequest, gin.H{"error": "A token for this email doesn't exist.Please create a new one"})
 		return	
 	}
-	accessToken := c.GetHeader("Cookie")
+	accessToken := c.GetHeader("Authorization")
 	if accessToken != tok.AccessToken {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Access token given not valid"})
 		return			
