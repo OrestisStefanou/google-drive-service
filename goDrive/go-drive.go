@@ -9,6 +9,8 @@ import (
         "log"
         "os"
 
+        "google-drive-service/utils"
+
         "golang.org/x/oauth2"
         "golang.org/x/oauth2/google"
         "google.golang.org/api/drive/v3"
@@ -28,7 +30,6 @@ func saveToken(path string, token *oauth2.Token) {
 }
 
 
-//TEST AUTHENTICATION FUNCTIONS
 // Retrieves a token from a local file.
 func GetTokenFromFile(file string) (*oauth2.Token, error) {
         f, err := os.Open(file)
@@ -160,5 +161,30 @@ func GetFileList(tok *oauth2.Token) ([]*drive.File,error) {
         return filesList.Files,nil
 }
 
-
-//TEST AUTHENTICATION FUNCTIONS FINISHED
+//Function that downloads a file with id = {fileId} from client's drive to specified filepath
+func DownloadFile(tok *oauth2.Token,userEmail,fileId string) (string,error) {
+        //Get client's service
+        service,err := getClientService(tok)
+        if err != nil {
+                fmt.Println("getClientService failed:",err)
+                return "",err 
+        }
+        //Get the metadata of the file
+        file_metadata,err := service.Files.Get(fileId).Fields("id, name, mimeType,fileExtension").Do()
+        if err != nil {
+                fmt.Println(err)
+                return "",err 
+        }
+        http_response,err := service.Files.Get(fileId).Download()
+        if err != nil {
+                fmt.Println(err)
+                return "",err 
+        }
+        pathToSave := utils.GetFileToDownloadPath(userEmail,fileId,file_metadata.FileExtension)
+        err = utils.CreateLocalFile(pathToSave,http_response.Body)
+        if err != nil {
+                fmt.Println(err)
+                return "",err
+        }
+        return pathToSave,nil
+}

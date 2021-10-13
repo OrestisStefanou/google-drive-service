@@ -33,3 +33,31 @@ func GetFilesMetadata(c *gin.Context){
 	}
 	c.JSON(http.StatusOK, gin.H{"Files": files})
 }
+
+//Function that sends the requested file to the user(only for files with binary content)
+func DownloadBinaryFile(c *gin.Context){
+	userEmail := c.Param("userEmail")
+	fileID := c.Param("fileID")
+	fmt.Println("userEmail:",userEmail)
+	fmt.Println("fileID:",fileID)
+	tokenPath := utils.GetTokenPath(userEmail)
+	fmt.Println("Token Path is:",tokenPath)
+	//Get the token from file
+	tok,err := goDrive.GetTokenFromFile(tokenPath)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "A token for this email doesn't exist.Please create a new one"})
+		return	
+	}
+	accessToken := c.GetHeader("Authorization")
+	if accessToken != tok.AccessToken {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Access token given not valid"})
+		return			
+	}
+	filePath,err := goDrive.DownloadFile(tok,userEmail,fileID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File id not valid or file is not of binary content"})
+		return			
+	}
+	c.FileAttachment(filePath,fileID)
+	//c.JSON(http.StatusOK, gin.H{"Message": "File downloaded"})
+}

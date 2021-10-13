@@ -34,6 +34,7 @@ func main() {
 		v1.GET("/authenticationURL", handlers.GetAuthenticationUrl)
 		v1.POST("/token", handlers.CreateUserToken)
 		v1.GET("/files/:userEmail", handlers.GetFilesMetadata)
+		v1.GET("/files/download/:userEmail/:fileID",handlers.DownloadBinaryFile)
 	}
 
 	router.Run() // listen and serve on 0.0.0.0:8080

@@ -1,4 +1,5 @@
 import requests
+import json
 
 baseURL = 'http://127.0.0.1:8080/v1/'
 
@@ -16,35 +17,39 @@ def create_token(email,auth_code):
 	r = requests.post(url, data=payload,headers=headers)
 	response = r.json()
 	print(response)
-	if r.status == 200:
+	if r.status_code == 200:
 		f = open("token", "w")
 		f.write(r['AccessToken'])
 		f.close()
 
 def list_files(email):
-	url = f"{baseURL}/files/{email}"
+	url = f"{baseURL}files/{email}"
 	f = open("token", "r")
 	access_token = f.read()
-	print("Access token is:",access_token)
+	#print("Access token is:",access_token)
 	headers = {'Authorization': access_token}
-	r = requests.get(url,headers=headers).json()
-	print(r)	
+	r = requests.get(url,headers=headers)
+	if r.status_code == 200:
+		files = r.json()['Files']
+		for file in files:
+			print(json.dumps(file,indent=2))
+	else:
+		print(r)
 
-"""
-headers = {'Content-type': 'application/x-www-form-urlencoded','Cookie': 'ya29.a0ARrdaM8ORNI3bEAGMxekzEEpsKOIZoxCVLcAZr3BUh7ea1cqDOjP19YquhWez8Z312MFfLYWKDP9euyy_SWTG2gbwdwqMsUeWWHIBq-xPA5lnYvhckZHjOUZVpsQ2yA9fniVBRWJvOtVvGks2IntvAQhpdJR'}
-r = requests.get('http://127.0.0.1:8080/v1/ping',headers=headers)
-print(r.json())
-"""
+def download_file(email,file_id):
+	url = f"{baseURL}files/download/{email}/{file_id}"
+	f = open("token", "r")
+	access_token = f.read()
+	#print("Access token is:",access_token)
+	headers = {'Authorization': access_token}
+	r = requests.get(url,headers=headers)	
+	if r.status_code == 200:
+		#print(r.content)
+		f = open("test.docx","wb")
+		f.write(r.content)
+		f.close()
+	else:
+		print(r.json())
 
-"""
-payload = {'email': 'stefanouorestis@gmail.com', 'code': '4/1AX4XfWgLkjJN3svLxQI-xe-lmBaCqsGVol5HTGZ_OvAVyK2xhZ7_NDtll-o'}
-headers = {'Content-type': 'application/x-www-form-urlencoded','AccessToken': 'testingToken'}
-r = requests.post("http://127.0.0.1:8080/v1/token", data=payload,headers=headers)
-print(r.json())
-"""
-
-"""
-headers = {'Authorization': 'ya29.a0ARrdaM8ORNI3bEAGMxekzEEpsKOIZoxCVLcAZr3BUh7ea1cqDOjP19YquhWez8Z312MFfLYWKDP9euyy_SWTG2gbwdwqMsUeWWHIBq-xPA5lnYvhckZHjOUZVpsQ2yA9fniVBRWJvOtVvGks2IntvAQhpdJR'}
-r = requests.get('http://127.0.0.1:8080/v1/files/stefanouorestis@gmail.com',headers=headers).json()
-print(r)
-"""
+#list_files('stefanouorestis@gmail.com')
+download_file('stefanouorestis@gmail.com','1eqTY8ce0tCSjzfENhMBg3-4rR5HnOEPr')
