@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"fmt"
+	"log"
 
 	"google-drive-service/goDrive"
 	"github.com/gin-gonic/gin"
@@ -29,7 +29,7 @@ func CreateUserToken(c *gin.Context) {
 		return
 	}
 	//Do basic logging here
-	fmt.Println("Authentication code:",jsonAuthCodeReq.AuthCode)
+	log.Println("Authentication code:",jsonAuthCodeReq.AuthCode)
 
 	//Get the user authentication token
 	accessToken,err := goDrive.GetUserToken(jsonAuthCodeReq.AuthCode)

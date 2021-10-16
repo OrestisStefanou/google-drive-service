@@ -2,7 +2,6 @@ package goDrive
 
 import (
         "context"
-        "fmt"
         "io/ioutil"
         "log"
 
@@ -31,14 +30,14 @@ func Get_user_auth_url() string {
 func getOauth2Config() (*oauth2.Config,error) {
         b, err := ioutil.ReadFile("credentials.json")
         if err != nil {
-                fmt.Println("Couldn't read credentials")
+                log.Println("Couldn't read credentials")
                 return nil,err
         }
 
         // If modifying these scopes, delete your previously saved token.json.
         config, err := google.ConfigFromJSON(b, drive.DriveMetadataScope, drive.DriveFileScope, drive.DriveScope)
         if err != nil {
-                fmt.Println("google.ConfigFromJSON failed:",err)
+                log.Println("google.ConfigFromJSON failed:",err)
                 return nil,err
         }
         return config,nil        
@@ -53,7 +52,7 @@ func GetUserToken(authCode string) (*oauth2.Token,error) {
         //Get the token from google
         tok, err := config.Exchange(context.TODO(), authCode)
         if err != nil {
-                fmt.Println("config.Exchange failed:",err)
+                log.Println("config.Exchange failed:",err)
                 return nil,err
         }
         return tok,nil     
@@ -72,7 +71,7 @@ func getClientService(token *oauth2.Token) (*drive.Service,error) {
         ctx := context.Background()
         service, err := drive.NewService(ctx, option.WithHTTPClient(client))
         if err != nil {
-                fmt.Println("drive.NewService failed:",err)
+                log.Println("drive.NewService failed:",err)
                 return nil,err
         }
         return service,nil           
@@ -84,33 +83,57 @@ func GetFileList(tok *oauth2.Token) ([]*drive.File,error) {
         //Get client's service
         service,err := getClientService(tok)
         if err != nil {
-                fmt.Println("getClientService failed:",err)
+                log.Println("getClientService failed:",err)
                 return nil,err 
         }
         filesList,err := service.Files.List().Fields("nextPageToken, files(id, name, mimeType,parents,size,webContentLink,webViewLink)").Do()
         if err != nil {
-                fmt.Println("Files list call failed:",err)
+                log.Println("Files list call failed:",err)
                 return nil,err
         }
         return filesList.Files,nil
 }
 
-//Function that downloads a file with id = {fileId} from client's drive to specified filepath
+
+//Function that downloads a file with id = {fileId} from client's drive
 func DownloadFile(tok *oauth2.Token,fileId string) ([]byte,error) {
         //Get client's service
         service,err := getClientService(tok)
         if err != nil {
-                fmt.Println("getClientService failed:",err)
+                log.Println("getClientService failed:",err)
                 return nil,err 
         }
         http_response,err := service.Files.Get(fileId).Download()
         if err != nil {
-                fmt.Println(err)
+                log.Println(err)
                 return nil,err 
         }
         file_data,err := ioutil.ReadAll(http_response.Body)
         if err != nil {
-                fmt.Println(err)
+                log.Println(err)
+                return nil,err
+        }
+        return file_data,nil
+}
+
+
+//Function that exports the file with id = {fileId} to mimeType = {mimeType}
+//and then download's it from client's drive
+func DownloadExportedFile(tok *oauth2.Token,fileId,mimeType string) ([]byte,error) {
+        //Get client's service
+        service,err := getClientService(tok)
+        if err != nil {
+                log.Println("getClientService failed:",err)
+                return nil,err 
+        }
+        http_response,err := service.Files.Export(fileId,mimeType).Download()
+        if err != nil {
+                log.Println(err)
+                return nil,err 
+        }
+        file_data,err := ioutil.ReadAll(http_response.Body)
+        if err != nil {
+                log.Println(err)
                 return nil,err
         }
         return file_data,nil

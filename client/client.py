@@ -78,4 +78,26 @@ def download_file(file_id,filepath):
 	else:
 		print(r.json())
 
-list_files()
+
+def download_exported_file(file_id,mimeType,filepath):
+	url = f"{baseURL}/files/download_exported/{file_id}"
+	payload = {"mimeType":mimeType}
+	try:
+		f = open("token.json", "r")
+		access_token = f.read()
+		f.close()
+	except:
+		print("Token not found")
+		return
+	headers = {'Authorization': access_token}
+	r = requests.get(url,headers=headers,params=payload)	
+	if r.status_code == 200:
+		#print(r.content)
+		f = open(filepath,"wb")
+		f.write(r.content)
+		f.close()
+	else:
+		print(r.json())
+
+
+download_exported_file('1Wv4Bgx9jrhIpqOUurLTTAKrEef7l7wYtRyfgu2DuGgM','application/pdf','orestis.pdf')

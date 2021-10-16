@@ -5,6 +5,7 @@ import (
 	"io"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"google-drive-service/handlers"
 	"github.com/gin-gonic/gin"
@@ -15,9 +16,10 @@ import (
 func main() {
 	//Create logging file
 	f,_ := os.Create("gin.log")
+	defer f.Close()
 	//Write the logs to file and console at the same time
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
-
+	log.SetOutput(f)
 	router := gin.Default()
 
 	//group these endpoints 
@@ -45,6 +47,7 @@ func main() {
 		v1.POST("/token", handlers.CreateUserToken)
 		v1.GET("/files", handlers.GetFilesMetadata)
 		v1.GET("/files/download/:fileID",handlers.DownloadBinaryFile)
+		v1.GET("/files/download_exported/:fileID",handlers.DownloadExportedFile)
 	}
 
 	router.Run() // listen and serve on 0.0.0.0:8080
