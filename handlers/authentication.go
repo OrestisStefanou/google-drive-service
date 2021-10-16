@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"google-drive-service/goDrive"
-	"google-drive-service/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,8 +21,7 @@ func GetAuthenticationUrl(c *gin.Context) {
 //A function to create an authentication token using the authentication code that the user sends
 func CreateUserToken(c *gin.Context) {
 	type AuthCodeRequest struct {
-		Email string `form:"email" binding:"required"`
-		Code string `form:"code" binding:"required"`
+		AuthCode string `form:"code" binding:"required"`
 	}
 	var jsonAuthCodeReq AuthCodeRequest
 	if err := c.ShouldBind(&jsonAuthCodeReq); err != nil {
@@ -31,26 +29,12 @@ func CreateUserToken(c *gin.Context) {
 		return
 	}
 	//Do basic logging here
-	fmt.Println("Email:",jsonAuthCodeReq.Email)
-	fmt.Println("Authentication code:",jsonAuthCodeReq.Code)
-	tokenPath := utils.GetTokenPath(jsonAuthCodeReq.Email)
-	fmt.Println("Token Path is:",tokenPath)
-	//First check if token already exists and if it exists check if is still valid
-	exists,err := goDrive.TokenExists(tokenPath)
-	if exists && err == nil {
-		fmt.Println("Token exists")
-		tokenIsValid,err := goDrive.TokenIsValid(tokenPath)
-		if tokenIsValid && err == nil {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Token already exists",
-			})
-			return
-		} 
-	}
-	//Create the user authentication token
-	accessToken,err := goDrive.CreateUserToken(jsonAuthCodeReq.Code,tokenPath)
+	fmt.Println("Authentication code:",jsonAuthCodeReq.AuthCode)
+
+	//Get the user authentication token
+	accessToken,err := goDrive.GetUserToken(jsonAuthCodeReq.AuthCode)
 	if err != nil {
-		c.JSON(http.StatusBadRequest,gin.H{"error":err.Error()})
+		c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid auth code"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{

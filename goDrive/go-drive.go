@@ -2,46 +2,15 @@ package goDrive
 
 import (
         "context"
-        "encoding/json"
-        "errors"
         "fmt"
         "io/ioutil"
         "log"
-        "os"
-
-        "google-drive-service/utils"
 
         "golang.org/x/oauth2"
         "golang.org/x/oauth2/google"
         "google.golang.org/api/drive/v3"
         "google.golang.org/api/option"
 )
-
-
-// Saves a token to a file path.
-func saveToken(path string, token *oauth2.Token) {
-        fmt.Printf("Saving credential file to: %s\n", path)
-        f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-        if err != nil {
-                log.Fatalf("Unable to cache oauth token: %v", err)
-        }
-        defer f.Close()
-        json.NewEncoder(f).Encode(token)
-}
-
-
-// Retrieves a token from a local file.
-func GetTokenFromFile(file string) (*oauth2.Token, error) {
-        f, err := os.Open(file)
-        if err != nil {
-                return nil, err
-        }
-        defer f.Close()
-        tok := &oauth2.Token{}
-        err = json.NewDecoder(f).Decode(tok)
-        return tok, err
-}
-
 
 func Get_user_auth_url() string {
         b, err := ioutil.ReadFile("credentials.json")
@@ -76,38 +45,18 @@ func getOauth2Config() (*oauth2.Config,error) {
 }
 
 
-func CreateUserToken(authCode,tokenPath string) (string,error) {
+func GetUserToken(authCode string) (*oauth2.Token,error) {
         config,err := getOauth2Config()
         if err != nil {
-                return "",err
+                return nil,err
         }
         //Get the token from google
         tok, err := config.Exchange(context.TODO(), authCode)
         if err != nil {
                 fmt.Println("config.Exchange failed:",err)
-                return "",err
+                return nil,err
         }
-        //Check if the token is valid
-        _,err = getClientService(tok)
-        if err != nil {
-                return "",err
-        }
-        //Save the token 
-        saveToken(tokenPath,tok)
-        return tok.AccessToken,nil     
-}
-
-
-//Function to check if tokenExists
-func TokenExists(tokenPath string) (bool,error) {
-    _, err := os.Stat(tokenPath)
-    if err == nil {
-        return true, nil
-    }
-    if errors.Is(err, os.ErrNotExist) {
-        return false, nil
-    }
-    return false, err
+        return tok,nil     
 }
 
 
@@ -129,21 +78,6 @@ func getClientService(token *oauth2.Token) (*drive.Service,error) {
         return service,nil           
 }
 
-//Function to check if token is valid
-func TokenIsValid(tokenPath string) (bool,error) {
-        //Get the token
-        tok, err := GetTokenFromFile(tokenPath)
-        if err != nil {
-                fmt.Println("tokenFromFile failed:",err)
-                return false,err 
-        }
-        //Check if token works
-        _,err = getClientService(tok)
-        if err != nil {
-                return false,err
-        }
-        return true,nil
-}
 
 //Function that returns a slice with pointers to drive.File 
 func GetFileList(tok *oauth2.Token) ([]*drive.File,error) {
@@ -162,29 +96,22 @@ func GetFileList(tok *oauth2.Token) ([]*drive.File,error) {
 }
 
 //Function that downloads a file with id = {fileId} from client's drive to specified filepath
-func DownloadFile(tok *oauth2.Token,userEmail,fileId string) (string,error) {
+func DownloadFile(tok *oauth2.Token,fileId string) ([]byte,error) {
         //Get client's service
         service,err := getClientService(tok)
         if err != nil {
                 fmt.Println("getClientService failed:",err)
-                return "",err 
-        }
-        //Get the metadata of the file
-        file_metadata,err := service.Files.Get(fileId).Fields("id, name, mimeType,fileExtension").Do()
-        if err != nil {
-                fmt.Println(err)
-                return "",err 
+                return nil,err 
         }
         http_response,err := service.Files.Get(fileId).Download()
         if err != nil {
                 fmt.Println(err)
-                return "",err 
+                return nil,err 
         }
-        pathToSave := utils.GetFileToDownloadPath(userEmail,fileId,file_metadata.FileExtension)
-        err = utils.CreateLocalFile(pathToSave,http_response.Body)
+        file_data,err := ioutil.ReadAll(http_response.Body)
         if err != nil {
                 fmt.Println(err)
-                return "",err
+                return nil,err
         }
-        return pathToSave,nil
+        return file_data,nil
 }

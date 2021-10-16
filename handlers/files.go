@@ -2,62 +2,52 @@ package handlers
 
 import (
 	"net/http"
+	"encoding/json"
 	"fmt"
 
 	"google-drive-service/goDrive"
-	"google-drive-service/utils"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
 )
 
 
 //Function that returns the metadata of the user's files
 func GetFilesMetadata(c *gin.Context){
-	userEmail := c.Param("userEmail")
-	tokenPath := utils.GetTokenPath(userEmail)
-	fmt.Println("Token Path is:",tokenPath)
-	//Get the token from file
-	tok,err := goDrive.GetTokenFromFile(tokenPath)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "A token for this email doesn't exist.Please create a new one"})
-		return	
-	}
 	accessToken := c.GetHeader("Authorization")
-	if accessToken != tok.AccessToken {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Access token given not valid"})
+	var tok *oauth2.Token
+	err := json.Unmarshal([]byte(accessToken), &tok)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"message": "Invalid access token",
+		})
 		return			
 	}
 	files,err := goDrive.GetFileList(tok)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "A token for this email doesn't exist or has expired.Please create a new one"})
+		c.JSON(403, gin.H{"error": "Token is invalid or expired"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"Files": files})
 }
 
+
 //Function that sends the requested file to the user(only for files with binary content)
 func DownloadBinaryFile(c *gin.Context){
-	userEmail := c.Param("userEmail")
 	fileID := c.Param("fileID")
-	fmt.Println("userEmail:",userEmail)
 	fmt.Println("fileID:",fileID)
-	tokenPath := utils.GetTokenPath(userEmail)
-	fmt.Println("Token Path is:",tokenPath)
-	//Get the token from file
-	tok,err := goDrive.GetTokenFromFile(tokenPath)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "A token for this email doesn't exist.Please create a new one"})
-		return	
-	}
 	accessToken := c.GetHeader("Authorization")
-	if accessToken != tok.AccessToken {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Access token given not valid"})
-		return			
-	}
-	filePath,err := goDrive.DownloadFile(tok,userEmail,fileID)
+	var tok *oauth2.Token
+	err := json.Unmarshal([]byte(accessToken), &tok)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "File id not valid or file is not of binary content"})
+		c.JSON(400, gin.H{
+			"message": "Invalid access token",
+		})
 		return			
 	}
-	c.FileAttachment(filePath,fileID)
-	//c.JSON(http.StatusOK, gin.H{"Message": "File downloaded"})
+	fileData,err := goDrive.DownloadFile(tok,fileID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return			
+	}
+	c.Data(200,"binary",fileData)
 }
