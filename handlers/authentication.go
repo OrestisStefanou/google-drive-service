@@ -28,7 +28,6 @@ func CreateUserToken(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	//Do basic logging here
 	log.Println("Authentication code:",jsonAuthCodeReq.AuthCode)
 
 	//Get the user authentication token

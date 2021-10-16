@@ -138,3 +138,30 @@ func DownloadExportedFile(tok *oauth2.Token,fileId,mimeType string) ([]byte,erro
         }
         return file_data,nil
 }
+
+
+//Function to create a new folder in client's drive
+func CreateFolder(tok *oauth2.Token,folderName,parentId string) error {
+        folder_metadata := new(drive.File)
+        //Set the name of the new folder
+        folder_metadata.Name = folderName
+        //Set the parent of the new folder
+        if len(parentId) > 0 {
+                folder_metadata.Parents = append(folder_metadata.Parents,parentId)
+        }
+        //Set the mimeType to folder
+        folder_metadata.MimeType = "application/vnd.google-apps.folder"
+        //Get client's service
+        service,err := getClientService(tok)
+        if err != nil {
+                log.Println("getClientService failed:",err)
+                return err 
+        }
+        //Make the call to create the new folder
+        _,err = service.Files.Create(folder_metadata).Do()
+        if err != nil {
+                log.Println("Files.Create call failed:",err)
+                return err
+        }
+        return nil
+}

@@ -48,6 +48,7 @@ func main() {
 		v1.GET("/files", handlers.GetFilesMetadata)
 		v1.GET("/files/download/:fileID",handlers.DownloadBinaryFile)
 		v1.GET("/files/download_exported/:fileID",handlers.DownloadExportedFile)
+		v1.POST("/files/folder", handlers.CreateFolder)
 	}
 
 	router.Run() // listen and serve on 0.0.0.0:8080

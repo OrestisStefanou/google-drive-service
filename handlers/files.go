@@ -76,3 +76,35 @@ func DownloadExportedFile(c *gin.Context) {
 	}
 	c.Data(200,"application/binary",fileData)
 }
+
+
+//Function that creates a new folder in user's drive
+func CreateFolder(c *gin.Context) {
+	type CreateFolderRequest struct {
+		FolderName string `json:"folder_name" binding:"required"`
+		ParentId string `json:"parent_id"`
+	}
+	accessToken := c.GetHeader("Authorization")
+	var tok *oauth2.Token
+	err := json.Unmarshal([]byte(accessToken), &tok)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"message": "Invalid access token",
+		})
+		return			
+	}
+	var jsonCreateFolderReq CreateFolderRequest
+	if err := c.ShouldBindJSON(&jsonCreateFolderReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	log.Println("Folder name:",jsonCreateFolderReq.FolderName)
+	log.Println("Parent id:",jsonCreateFolderReq.ParentId)
+
+	err = goDrive.CreateFolder(tok,jsonCreateFolderReq.FolderName,jsonCreateFolderReq.ParentId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return		
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Folder Created"})
+}

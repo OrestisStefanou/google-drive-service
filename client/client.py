@@ -100,4 +100,25 @@ def download_exported_file(file_id,mimeType,filepath):
 		print(r.json())
 
 
-download_exported_file('1Wv4Bgx9jrhIpqOUurLTTAKrEef7l7wYtRyfgu2DuGgM','application/pdf','orestis.pdf')
+def create_folder(folder_name,parent_id=None):
+	url = f"{baseURL}/files/folder"
+	try:
+		f = open("token.json", "r")
+		access_token = f.read()
+		f.close()
+	except:
+		print("Token not found")
+		return
+	#print("Access token is:",access_token)
+	headers = {'Authorization': access_token}
+	if parent_id:
+		payload = {'folder_name': folder_name , "parent_id": parent_id }
+	else:
+		payload = {'folder_name': folder_name}
+	r = requests.post(url, json=payload,headers=headers)
+	response = r.json()
+	print(response)
+
+
+create_folder("NEW_FOLDER","1yHdwXDoePxgnA5IWpwi_grdqlVL0MOhD")
+#list_files()
