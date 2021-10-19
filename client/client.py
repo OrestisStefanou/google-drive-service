@@ -56,7 +56,7 @@ def list_files():
 		for file in files:
 			print(json.dumps(file,indent=2))
 	else:
-		print(r)
+		print(r.json())
 
 
 def download_file(file_id,filepath):
@@ -120,5 +120,6 @@ def create_folder(folder_name,parent_id=None):
 	print(response)
 
 
-create_folder("NEW_FOLDER","1yHdwXDoePxgnA5IWpwi_grdqlVL0MOhD")
+#create_folder("NEW_FOLDER","1yHdwXDoePxgnA5IWpwi_grdqlVL0MOhD")
 #list_files()
+download_file('1eqTY8ce0tCSjzfENhMBg3-4rR5HnOEPr','test.docx')

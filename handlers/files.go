@@ -13,14 +13,9 @@ import (
 
 //Function that returns the metadata of the user's files
 func GetFilesMetadata(c *gin.Context) {
-	accessToken := c.GetHeader("Authorization")
-	var tok *oauth2.Token
-	err := json.Unmarshal([]byte(accessToken), &tok)
+	tok,err := getTokenFromHeader(c)
 	if err != nil {
-		c.JSON(400, gin.H{
-			"message": "Invalid access token",
-		})
-		return			
+		return
 	}
 	files,err := goDrive.GetFileList(tok)
 	if err != nil {
@@ -35,14 +30,9 @@ func GetFilesMetadata(c *gin.Context) {
 func DownloadBinaryFile(c *gin.Context) {
 	fileID := c.Param("fileID")
 	log.Println("fileID:",fileID)
-	accessToken := c.GetHeader("Authorization")
-	var tok *oauth2.Token
-	err := json.Unmarshal([]byte(accessToken), &tok)
+	tok,err := getTokenFromHeader(c)
 	if err != nil {
-		c.JSON(400, gin.H{
-			"message": "Invalid access token",
-		})
-		return			
+		return
 	}
 	fileData,err := goDrive.DownloadFile(tok,fileID)
 	if err != nil {
