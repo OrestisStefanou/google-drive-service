@@ -1,8 +1,7 @@
 import requests
 import json
-import urllib
 
-baseURL = 'http://127.0.0.1:8080/v1'
+baseURL = 'https://radiant-gorge-35067.herokuapp.com/v1'
 
 
 def ping():
@@ -144,7 +143,10 @@ def upload_file(filepath,parent_id=None):
 	print(r.json())
 
 
+#get_auth_url()
+#create_token('4/1AX4XfWjbA8wf0bQyKNS4umLx7aiP_75ARfrWU4fwlzMrc3ayrffSWIZMhe8')
 #create_folder("NEW_FOLDER")
-list_files()
-#download_file('1eqTY8ce0tCSjzfENhMBg3-4rR5HnOEPr','test.docx')
-#upload_file('test.txt')
+#list_files()
+#download_file("0B7-wMs3uEVS7c3RhcnRlcl9maWxl",'test.pdf')
+#upload_file('client.py')
+download_exported_file('16IOwKrz4XbnOzhFETV4NerR2g3Y7nJjsCMGzGIRr5ec', "application/pdf", 'test.pdf')
