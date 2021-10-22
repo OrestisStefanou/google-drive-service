@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"encoding/json"
 	"log"
 
 	"google-drive-service/goDrive"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/oauth2"
 )
 
 
@@ -50,14 +48,9 @@ func DownloadExportedFile(c *gin.Context) {
 	mimeType := c.Query("mimeType")
 	log.Println("fileID:",fileID)
 	log.Println("mimeType:",mimeType)
-	accessToken := c.GetHeader("Authorization")
-	var tok *oauth2.Token
-	err := json.Unmarshal([]byte(accessToken), &tok)
+	tok,err := getTokenFromHeader(c)
 	if err != nil {
-		c.JSON(400, gin.H{
-			"message": "Invalid access token",
-		})
-		return			
+		return
 	}
 	fileData,err := goDrive.DownloadExportedFile(tok,fileID,mimeType)
 	if err != nil {
@@ -74,14 +67,9 @@ func CreateFolder(c *gin.Context) {
 		FolderName string `json:"folder_name" binding:"required"`
 		ParentId string `json:"parent_id"`
 	}
-	accessToken := c.GetHeader("Authorization")
-	var tok *oauth2.Token
-	err := json.Unmarshal([]byte(accessToken), &tok)
+	tok,err := getTokenFromHeader(c)
 	if err != nil {
-		c.JSON(400, gin.H{
-			"message": "Invalid access token",
-		})
-		return			
+		return
 	}
 	var jsonCreateFolderReq CreateFolderRequest
 	if err := c.ShouldBindJSON(&jsonCreateFolderReq); err != nil {
@@ -97,4 +85,43 @@ func CreateFolder(c *gin.Context) {
 		return		
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Folder Created"})
+}
+
+
+//Function that uploads a file in the user's drive
+func UploadFile(c *gin.Context) {
+	tok,err := getTokenFromHeader(c)
+	if err != nil {
+		return
+	}
+	multipartForm,err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return				
+	}
+	var parentId string
+	parent_value,exists := multipartForm.Value["parent_id"]
+	if exists {
+		parentId = parent_value[0]
+	}
+	log.Println("ParentId:",parentId)
+	files,exists := multipartForm.File["file"]
+	if exists == false {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File to upload not found"})
+		return		
+	}
+	file := files[0]
+	fileName := file.Filename
+	log.Println("Filename:",fileName)
+	fileObj,err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return		
+	}
+	err = goDrive.UploadFile(tok,fileObj,parentId,fileName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return		
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "File Uploaded"})
 }

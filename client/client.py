@@ -120,6 +120,28 @@ def create_folder(folder_name,parent_id=None):
 	print(response)
 
 
+
+def upload_file(filepath,parent_id=None):
+	url = f"{baseURL}/files/file"
+	try:
+		f = open("token.json", "r")
+		access_token = f.read()
+		f.close()
+	except:
+		print("Token not found")
+		return
+	#print("Access token is:",access_token)
+	headers = {'Authorization': access_token}
+	files = {'file': open(filepath, 'rb')}
+	if parent_id:
+		payload = {'parent_id': parent_id}
+		r = requests.post(url, data=payload,files=files,headers=headers)
+	else:
+		r = requests.post(url,files=files,headers=headers)
+	print(r.json())
+
+
 #create_folder("NEW_FOLDER","1yHdwXDoePxgnA5IWpwi_grdqlVL0MOhD")
 #list_files()
-download_file('1eqTY8ce0tCSjzfENhMBg3-4rR5HnOEPr','test.docx')
+#download_file('1eqTY8ce0tCSjzfENhMBg3-4rR5HnOEPr','test.docx')
+upload_file('book.pdf','1yHdwXDoePxgnA5IWpwi_grdqlVL0MOhD')

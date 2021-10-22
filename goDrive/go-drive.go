@@ -2,6 +2,7 @@ package goDrive
 
 import (
         "context"
+        "io"
         "io/ioutil"
         "log"
 
@@ -164,4 +165,27 @@ func CreateFolder(tok *oauth2.Token,folderName,parentId string) error {
                 return err
         }
         return nil
+}
+
+//Function to upload a file in client's drive
+func UploadFile(tok *oauth2.Token,file_to_upload io.Reader,parentId,filename string) error {
+        file_metadata := new(drive.File)
+        //Set the name of the uploaded file
+        file_metadata.Name = filename
+        //Set the parent folder if given
+        if len(parentId) > 0 {
+                file_metadata.Parents = append(file_metadata.Parents,parentId)
+        }
+        service,err := getClientService(tok)
+        if err != nil {
+                log.Println("getClientService failed:",err)
+                return err 
+        }
+        _,err = service.Files.Create(file_metadata).Media(file_to_upload).Do()
+        if err != nil {
+                log.Println("Files.Create call failed")
+                return err 
+        }
+        return nil
+
 }
