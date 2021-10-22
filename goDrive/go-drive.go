@@ -80,14 +80,19 @@ func getClientService(token *oauth2.Token) (*drive.Service,error) {
 
 
 //Function that returns a slice with pointers to drive.File 
-func GetFileList(tok *oauth2.Token) ([]*drive.File,error) {
+func GetFileList(tok *oauth2.Token,query string) ([]*drive.File,error) {
         //Get client's service
         service,err := getClientService(tok)
         if err != nil {
                 log.Println("getClientService failed:",err)
                 return nil,err 
         }
-        filesList,err := service.Files.List().Fields("nextPageToken, files(id, name, mimeType,parents,size,webContentLink,webViewLink)").Do()
+        var filesList *drive.FileList
+        if query == ""{
+                filesList,err = service.Files.List().Fields("nextPageToken, files(id, name, mimeType,parents,size,webContentLink,webViewLink)").Do()
+        } else {
+                filesList,err = service.Files.List().Q(query).Fields("nextPageToken, files(id, name, mimeType,parents,size,webContentLink,webViewLink)").Do()
+        }
         if err != nil {
                 log.Println("Files list call failed:",err)
                 return nil,err
@@ -142,7 +147,7 @@ func DownloadExportedFile(tok *oauth2.Token,fileId,mimeType string) ([]byte,erro
 
 
 //Function to create a new folder in client's drive
-func CreateFolder(tok *oauth2.Token,folderName,parentId string) error {
+func CreateFolder(tok *oauth2.Token,folderName,parentId string) (*drive.File,error) {
         folder_metadata := new(drive.File)
         //Set the name of the new folder
         folder_metadata.Name = folderName
@@ -156,19 +161,19 @@ func CreateFolder(tok *oauth2.Token,folderName,parentId string) error {
         service,err := getClientService(tok)
         if err != nil {
                 log.Println("getClientService failed:",err)
-                return err 
+                return nil,err 
         }
         //Make the call to create the new folder
-        _,err = service.Files.Create(folder_metadata).Do()
+        f,err := service.Files.Create(folder_metadata).Do()
         if err != nil {
                 log.Println("Files.Create call failed:",err)
-                return err
+                return nil,err
         }
-        return nil
+        return f,nil
 }
 
 //Function to upload a file in client's drive
-func UploadFile(tok *oauth2.Token,file_to_upload io.Reader,parentId,filename string) error {
+func UploadFile(tok *oauth2.Token,file_to_upload io.Reader,parentId,filename string) (*drive.File,error) {
         file_metadata := new(drive.File)
         //Set the name of the uploaded file
         file_metadata.Name = filename
@@ -179,13 +184,13 @@ func UploadFile(tok *oauth2.Token,file_to_upload io.Reader,parentId,filename str
         service,err := getClientService(tok)
         if err != nil {
                 log.Println("getClientService failed:",err)
-                return err 
+                return nil,err 
         }
-        _,err = service.Files.Create(file_metadata).Media(file_to_upload).Do()
+        f,err := service.Files.Create(file_metadata).Media(file_to_upload).Do()
         if err != nil {
                 log.Println("Files.Create call failed")
-                return err 
+                return nil,err 
         }
-        return nil
+        return f,nil
 
 }

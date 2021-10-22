@@ -1,5 +1,6 @@
 import requests
 import json
+import urllib
 
 baseURL = 'http://127.0.0.1:8080/v1'
 
@@ -39,7 +40,7 @@ def create_token(auth_code):
 		f.close()
 
 
-def list_files():
+def list_files(query=""):
 	url = f"{baseURL}/files"
 	try:
 		f = open("token.json", "r")
@@ -49,8 +50,10 @@ def list_files():
 		print("Token not found")
 		return
 	#print("Access token is:",access_token)
+	payload = {'query': query}
 	headers = {'Authorization': access_token}
-	r = requests.get(url,headers=headers)
+	r = requests.get(url,headers=headers,params=payload)
+	print(r.url)
 	if r.status_code == 200:
 		files = r.json()['Files']
 		for file in files:
@@ -141,7 +144,7 @@ def upload_file(filepath,parent_id=None):
 	print(r.json())
 
 
-#create_folder("NEW_FOLDER","1yHdwXDoePxgnA5IWpwi_grdqlVL0MOhD")
-#list_files()
+#create_folder("NEW_FOLDER")
+list_files()
 #download_file('1eqTY8ce0tCSjzfENhMBg3-4rR5HnOEPr','test.docx')
-upload_file('book.pdf','1yHdwXDoePxgnA5IWpwi_grdqlVL0MOhD')
+#upload_file('test.txt')

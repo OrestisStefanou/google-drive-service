@@ -15,9 +15,11 @@ func GetFilesMetadata(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	files,err := goDrive.GetFileList(tok)
+	query_string := c.Query("query")
+	log.Println("Query:",query_string)
+	files,err := goDrive.GetFileList(tok,query_string)
 	if err != nil {
-		c.JSON(403, gin.H{"error": "Token is invalid or expired"})
+		c.JSON(403, gin.H{"error": gin.H{"error": err}})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"Files": files})
@@ -79,12 +81,12 @@ func CreateFolder(c *gin.Context) {
 	log.Println("Folder name:",jsonCreateFolderReq.FolderName)
 	log.Println("Parent id:",jsonCreateFolderReq.ParentId)
 
-	err = goDrive.CreateFolder(tok,jsonCreateFolderReq.FolderName,jsonCreateFolderReq.ParentId)
+	f,err := goDrive.CreateFolder(tok,jsonCreateFolderReq.FolderName,jsonCreateFolderReq.ParentId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return		
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Folder Created"})
+	c.JSON(http.StatusOK, gin.H{"message": "Folder Created","folder":f})
 }
 
 
@@ -118,10 +120,10 @@ func UploadFile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return		
 	}
-	err = goDrive.UploadFile(tok,fileObj,parentId,fileName)
+	f,err := goDrive.UploadFile(tok,fileObj,parentId,fileName)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return		
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "File Uploaded"})
+	c.JSON(http.StatusOK, gin.H{"message": "File Uploaded","file":f})
 }
