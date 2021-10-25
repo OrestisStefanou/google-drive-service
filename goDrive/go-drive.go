@@ -2,6 +2,7 @@ package goDrive
 
 import (
         "context"
+        "errors"
         "io"
         "io/ioutil"
         "log"
@@ -12,19 +13,36 @@ import (
         "google.golang.org/api/option"
 )
 
-func Get_user_auth_url() string {
+func Get_user_auth_url(access_scope string) (string,error) {
+        scopes := map[string]string{
+          "DriveScope": "https://www.googleapis.com/auth/drive",
+          "DriveAppdataScope": "https://www.googleapis.com/auth/drive.appdata",
+          "DriveFileScope": "https://www.googleapis.com/auth/drive.file",
+          "DriveMetadataScope": "https://www.googleapis.com/auth/drive.metadata",
+          "DriveMetadataReadonlyScope": "https://www.googleapis.com/auth/drive.metadata.readonly",
+          "DrivePhotosReadonlyScope": "https://www.googleapis.com/auth/drive.photos.readonly",
+          "DriveReadonlyScope": "https://www.googleapis.com/auth/drive.readonly",
+          "DriveScriptsScope": "https://www.googleapis.com/auth/drive.scripts",
+        }
+
         b, err := ioutil.ReadFile("credentials.json")
         if err != nil {
                 log.Fatalf("Unable to read client secret file: %v", err)
         }
 
+        requesting_access,exists := scopes[access_scope]
+        if exists == false {
+                return "",errors.New("Not a valid access scope")
+        }
+
         // If modifying these scopes, delete your previously saved token.json.
-        config, err := google.ConfigFromJSON(b, drive.DriveMetadataScope, drive.DriveFileScope, drive.DriveScope)
+        config, err := google.ConfigFromJSON(b, requesting_access)
         if err != nil {
-                log.Fatalf("Unable to parse client secret file to config: %v", err)
+                //log.Fatalf("Unable to parse client secret file to config: %v", err)
+                return "",err
         }
         authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-        return authURL        
+        return authURL,nil        
 }
 
 

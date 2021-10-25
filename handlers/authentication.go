@@ -10,7 +10,12 @@ import (
 
 //Function to generate a url that the user can use to get an authentication code
 func GetAuthenticationUrl(c *gin.Context) {
-	authURL := goDrive.Get_user_auth_url()
+	scope := c.DefaultQuery("scope", "DriveScope")
+	authURL,err := goDrive.Get_user_auth_url(scope)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
 	c.JSON(200, gin.H{
 		"message": "Please go to this link to get an authentication code",
 		"authURL": authURL,
