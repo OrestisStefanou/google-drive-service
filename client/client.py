@@ -1,7 +1,7 @@
 import requests
 import json
 
-baseURL = 'https://radiant-gorge-35067.herokuapp.com/v1'
+baseURL = 'http://127.0.0.1:8080/v1'
 
 
 def ping():
@@ -19,9 +19,13 @@ def ping():
 	print(r.json())
 
 
-def get_auth_url():
+def get_auth_url(scope=""):
 	url = f"{baseURL}/authenticationURL"
-	r = requests.get(url)
+	if scope:
+		payload = {'scope': scope}
+		r = requests.get(url,params=payload)
+	else:
+		r = requests.get(url)
 	print(r.json())
 
 
@@ -48,11 +52,9 @@ def list_files(query=""):
 	except:
 		print("Token not found")
 		return
-	#print("Access token is:",access_token)
 	payload = {'query': query}
 	headers = {'Authorization': access_token}
 	r = requests.get(url,headers=headers,params=payload)
-	print(r.url)
 	if r.status_code == 200:
 		files = r.json()['Files']
 		for file in files:
@@ -143,10 +145,33 @@ def upload_file(filepath,parent_id=None):
 	print(r.json())
 
 
-#get_auth_url()
-#create_token('4/1AX4XfWjbA8wf0bQyKNS4umLx7aiP_75ARfrWU4fwlzMrc3ayrffSWIZMhe8')
+def add_permission(file_id,role,permission_type,emails):
+	url = f"{baseURL}/permissions/permission"
+	try:
+		f = open("token.json", "r")
+		access_token = f.read()
+		f.close()
+	except:
+		print("Token not found")
+		return
+	#print("Access token is:",access_token)
+	headers = {'Authorization': access_token}
+	payload = {
+		'file_id': file_id,
+		"role":role,
+		"type":permission_type,
+		"emails":emails
+	}
+	r = requests.post(url, json=payload,headers=headers)
+	print(r.json())
+
+#get_auth_url("DriveScope")
+#create_token('4/1AX4XfWheYk_oPHFYQIXNQNVQRrOrMFySy9g-mxZWgoP6uiLcMBX0uIBYTcs')
 #create_folder("NEW_FOLDER")
 #list_files()
 #download_file("0B7-wMs3uEVS7c3RhcnRlcl9maWxl",'test.pdf')
 #upload_file('client.py')
-download_exported_file('16IOwKrz4XbnOzhFETV4NerR2g3Y7nJjsCMGzGIRr5ec', "application/pdf", 'test.pdf')
+#download_exported_file('10Sy0YBg-FIoqzrTML8Oz1r7CK6XCXZQeArwK-TC8e-g', "application/pdf", 'test.pdf')
+
+emails = ['alexandros.alex97@gmail.com','djnikstef@gmail.com']
+add_permission("1Wv4Bgx9jrhIpqOUurLTTAKrEef7l7wYtRyfgu2DuGgM","reader","user",emails)

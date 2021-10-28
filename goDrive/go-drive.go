@@ -212,3 +212,50 @@ func UploadFile(tok *oauth2.Token,file_to_upload io.Reader,parentId,filename str
         return f,nil
 
 }
+
+
+//Function to add permissions(access to other google users) to a file
+func AddFilePermission(tok *oauth2.Token,fileId,role,permissionType string,emails []string) error {
+        // Role: The role granted by this permission
+        // - owner
+        // - organizer
+        // - fileOrganizer
+        // - writer
+        // - commenter
+        // - reader
+
+        // permissionType: The type of the grantee. Valid values are:
+        // - user
+        // - group
+        // - anyone  When creating a permission, if type is user or group, you
+        // must provide an emailAddress for the user or group
+
+        service,err := getClientService(tok)
+        if err != nil {
+                log.Println("getClientService failed:",err)
+                return err 
+        }
+
+        if permissionType == "anyone" {
+                new_permission := new(drive.Permission)
+                new_permission.Role = role 
+                new_permission.Type = permissionType
+                _,err := service.Permissions.Create(fileId,new_permission).Do()
+                if err != nil {
+                        return err
+                }
+                return nil                
+        }
+        for _,email := range emails {
+                new_permission := new(drive.Permission)
+                new_permission.EmailAddress = email
+                new_permission.Role = role 
+                new_permission.Type = permissionType
+                //Create a new permission for the file
+                _,err := service.Permissions.Create(fileId,new_permission).Do()
+                if err != nil {
+                        return err
+                }
+        }
+        return nil
+}
