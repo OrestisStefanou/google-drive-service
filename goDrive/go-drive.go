@@ -259,3 +259,18 @@ func AddFilePermission(tok *oauth2.Token,fileId,role,permissionType string,email
         }
         return nil
 }
+
+
+//Funtion to get the permissions of a file
+func GetFilePermissions(tok *oauth2.Token,fileId string) ([]*drive.Permission,error) {
+        service,err := getClientService(tok)
+        if err != nil {
+                log.Println("getClientService failed:",err)
+                return nil,err 
+        }        
+        permissionsList,err := service.Permissions.List(fileId).Fields("nextPageToken, permissions(emailAddress, role, type)").Do()
+        if err != nil {
+                return nil,err 
+        }
+        return permissionsList.Permissions,nil
+}

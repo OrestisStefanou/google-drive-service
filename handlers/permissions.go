@@ -39,3 +39,21 @@ func AddPermission(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Permission Created"})
 }
+
+
+//Function to list the permissions of a file
+func ListFilePermissions(c *gin.Context) {
+	fileID := c.Param("fileID")
+	log.Println("FileID:",fileID)
+
+	tok,err := getTokenFromHeader(c)
+	if err != nil {
+		return
+	}
+	permissions,err := goDrive.GetFilePermissions(tok,fileID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return			
+	}
+	c.JSON(http.StatusOK, gin.H{"Permissions": permissions})
+}

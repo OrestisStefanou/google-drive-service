@@ -51,6 +51,7 @@ func main() {
 		v1.POST("/files/folder", handlers.CreateFolder)
 		v1.POST("/files/file", handlers.UploadFile)
 		v1.POST("/permissions/permission", handlers.AddPermission)
+		v1.GET("/permissions/:fileID", handlers.ListFilePermissions)
 	}
 
 	router.Run() // listen and serve on 0.0.0.0:8080
