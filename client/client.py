@@ -187,11 +187,11 @@ def get_file_permissions(file_id):
 #get_auth_url("DriveScope")
 #create_token('4/1AX4XfWheYk_oPHFYQIXNQNVQRrOrMFySy9g-mxZWgoP6uiLcMBX0uIBYTcs')
 #create_folder("NEW_FOLDER")
-#list_files()
+list_files()
 #download_file("0B7-wMs3uEVS7c3RhcnRlcl9maWxl",'test.pdf')
 #upload_file('client.py')
 #download_exported_file('10Sy0YBg-FIoqzrTML8Oz1r7CK6XCXZQeArwK-TC8e-g', "application/pdf", 'test.pdf')
 
 #emails = ['alexandros.alex97@gmail.com','djnikstef@gmail.com']
 #add_permission("1Wv4Bgx9jrhIpqOUurLTTAKrEef7l7wYtRyfgu2DuGgM","reader","user",emails)
-get_file_permissions("1Wv4Bgx9jrhIpqOUurLTTAKrEef7l7wYtRyfgu2DuGgM")
+#get_file_permissions("1Wv4Bgx9jrhIpqOUurLTTAKrEef7l7wYtRyfgu2DuGgM")

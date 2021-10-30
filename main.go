@@ -3,17 +3,15 @@ package main
 import (
 	"os"
 	"io"
-	"encoding/json"
-	"fmt"
 	"log"
 
 	"google-drive-service/handlers"
 	"github.com/gin-gonic/gin"
-    "golang.org/x/oauth2"
 )
 
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	//Create logging file
 	f,_ := os.Create("gin.log")
 	defer f.Close()
@@ -26,20 +24,8 @@ func main() {
 	v1 := router.Group("/v1")
 	{
 		v1.GET("/ping", func(c *gin.Context) {
-			headers := c.Request.Header 
-			fmt.Println(headers)
-			token := c.GetHeader("Authorization")
-			var tok *oauth2.Token
-			err := json.Unmarshal([]byte(token), &tok)
-			if err != nil {
-				c.JSON(200, gin.H{
-					"message": "Something went wrong",
-				})
-				return			
-			}
 			c.JSON(200, gin.H{
-				"message": "Token",
-				"Token" : tok,
+				"message": "Pong",
 			})
 		})
 
@@ -53,6 +39,5 @@ func main() {
 		v1.POST("/permissions/permission", handlers.AddPermission)
 		v1.GET("/permissions/:fileID", handlers.ListFilePermissions)
 	}
-
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
