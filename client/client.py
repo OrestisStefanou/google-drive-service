@@ -185,10 +185,10 @@ def get_file_permissions(file_id):
 		print(r.json())	
 
 #Run this function first to get an auth url
-#get_auth_url("DriveScope")
+get_auth_url("DriveScope")
 
 #Run create_token with the auth code that google returned
-#create_token('4/1AX4XfWjeXTCgjoVZCGhR-zifi-uoWDCMQR7eb0sQwlYUJOcepgnGIyRVhLU')
+#create_token('<auth_code>')
 
 # List the files
-list_files()
+#list_files()
